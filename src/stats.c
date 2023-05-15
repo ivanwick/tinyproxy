@@ -47,23 +47,32 @@ static struct stat_s stats_buf, *stats;
 static pthread_mutex_t stats_update_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t stats_file_lock = PTHREAD_MUTEX_INITIALIZER;
 
+static orderedmap stat_types;
 /*
  * Initialize the statistics information to zero.
  */
 void init_stats (void)
 {
         stats = &stats_buf;
+        
+        /* TODO if config->stats are defined, then init the orderedmap */
+        stat_types = orderedmap_create(3);
+        /* TODO fail to create */
+        orderedmap_append(stat_types, "text/html", "data/templates/stats.html");
+        orderedmap_append(stat_types, "application/json", "data/templates/stats.json");
 }
 
 /*
  * Display the statics of the tinyproxy server.
  */
 int
-showstats (struct conn_s *connptr)
+showstats (struct conn_s *connptr, orderedmap request_headers)
 {
         char *message_buffer;
         char opens[16], reqs[16], badconns[16], denied[16], refused[16];
         FILE *statfile;
+        char *accept_header;
+        char *stats_template;
 
         snprintf (opens, sizeof (opens), "%lu", stats->num_open);
         snprintf (reqs, sizeof (reqs), "%lu", stats->num_reqs);
@@ -71,9 +80,18 @@ showstats (struct conn_s *connptr)
         snprintf (denied, sizeof (denied), "%lu", stats->num_denied);
         snprintf (refused, sizeof (refused), "%lu", stats->num_refused);
 
+        accept_header = orderedmap_find(request_headers, "accept");
+        if (accept_header) {
+            stats_template = orderedmap_find(stat_types, accept_header);
+        } else if (config->statpage) {
+            stats_template = config->statpage;
+        } else {
+            stats_template = NULL;
+        }
+
         pthread_mutex_lock(&stats_file_lock);
 
-        if (!config->statpage || (!(statfile = fopen (config->statpage, "r")))) {
+        if (!stats_template || (!(statfile = fopen (stats_template, "r")))) {
                 message_buffer = (char *) safemalloc (MAXBUFFSIZE);
                 if (!message_buffer) {
 err_minus_one:

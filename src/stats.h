@@ -22,6 +22,7 @@
 #define _TINYPROXY_STATS_H_
 
 #include "conns.h"
+#include "orderedmap.h"
 
 /*
  * Various logable statistics
@@ -38,7 +39,7 @@ typedef enum {
  * Public API to the statistics for tinyproxy
  */
 extern void init_stats (void);
-extern int showstats (struct conn_s *connptr);
+extern int showstats (struct conn_s *connptr, orderedmap headers);
 extern int update_stats (status_t update_level);
 
 #endif

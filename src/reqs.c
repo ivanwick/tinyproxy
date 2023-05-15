@@ -1529,7 +1529,7 @@ get_request_entity(struct conn_s *connptr)
         return ret;
 }
 
-static void handle_connection_failure(struct conn_s *connptr, int got_headers)
+static void handle_connection_failure(struct conn_s *connptr, int got_headers, orderedmap headers)
 {
         /*
          * First, get the body if there is one.
@@ -1550,7 +1550,7 @@ static void handle_connection_failure(struct conn_s *connptr, int got_headers)
         if (connptr->error_variables) {
                 send_http_error_message (connptr);
         } else if (connptr->show_stats) {
-                showstats (connptr);
+                showstats (connptr, headers);
         }
 }
 
@@ -1571,7 +1571,7 @@ void handle_connection (struct conn_s *connptr, union sockaddr_union* addr)
 {
 
 #define HC_FAIL() \
-        do {handle_connection_failure(connptr, got_headers); goto done;} \
+        do {handle_connection_failure(connptr, got_headers, hashofheaders); goto done;} \
         while(0)
 
         int got_headers = 0, fd = connptr->client_fd;
