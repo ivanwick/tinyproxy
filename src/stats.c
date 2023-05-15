@@ -73,6 +73,9 @@ showstats (struct conn_s *connptr, orderedmap request_headers)
         FILE *statfile;
         char *accept_header;
         char *stats_template;
+        char *type_based_stats;
+        size_t iter;
+        char *stat_type, *type_fname;
 
         snprintf (opens, sizeof (opens), "%lu", stats->num_open);
         snprintf (reqs, sizeof (reqs), "%lu", stats->num_reqs);
@@ -81,11 +84,24 @@ showstats (struct conn_s *connptr, orderedmap request_headers)
         snprintf (refused, sizeof (refused), "%lu", stats->num_refused);
 
         accept_header = orderedmap_find(request_headers, "accept");
-        if (accept_header) {
-            stats_template = orderedmap_find(stat_types, accept_header);
+
+        type_based_stats = NULL;
+        iter = 0;
+        while((iter = orderedmap_next(stat_types, iter, &stat_type, &type_fname))) {
+            if (strstr(accept_header, stat_type)) {
+                type_based_stats = type_fname;
+                break;
+            }
+        }
+
+        if (type_based_stats) {
+            /* new type-based stats */
+            stats_template = type_based_stats;
         } else if (config->statpage) {
+            /* backward compatible single-page stats */
             stats_template = config->statpage;
         } else {
+            /* null template yielding default minimal page */
             stats_template = NULL;
         }
 
