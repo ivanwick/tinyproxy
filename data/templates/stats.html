@@ -55,6 +55,39 @@
         font-weight: 600;
       }
     </style>
+    
+    <script>  
+function fun() {
+var xhttp = new XMLHttpRequest();
+xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var myArr = JSON.parse(this.responseText);
+        update(myArr);
+    }
+};
+xhttp.open("GET", "", true);
+xhttp.setRequestHeader("Accept", "application/json");
+xhttp.send();
+}
+
+function update(latest) {
+Object.entries(latest).map(([name, value]) => {
+        console.log(name + ": " + value);
+        elem = document.getElementById(name);
+        if (elem) {
+            elem.textContent = value;
+        }
+    });
+}
+
+function periodic() {
+    fun();
+    setTimeout(periodic, 2000);
+}
+
+periodic();
+</script>
+
   </head>
 
   <body>
@@ -66,29 +99,30 @@
           </tr>
           <tr class="odd">
             <td class="right">Open connections</td>
-            <td class="center">{opens}</td>
+            <td class="center" id="open">{opens}</td>
           </tr>
 
           <tr class="even">
             <td class="right">Bad connections</td>
-            <td class="center">{badconns}</td>
+            <td class="center" id="bad">{badconns}</td>
           </tr>
 
           <tr class="odd">
             <td class="right">Denied connections</td>
-            <td class="center">{deniedconns}</td>
+            <td class="center" id="denied">{deniedconns}</td>
           </tr>
 
           <tr class="even">
             <td class="right">Refused (high load)</td>
-            <td class="center">{refusedconns}</td>
+            <td class="center" id="refused">{refusedconns}</td>
           </tr>
 
           <tr class="odd">
             <td class="right">Total requests</td>
-            <td class="center">{reqs}</td>
+            <td class="center" id="requests">{reqs}</td>
           </tr>
         </table>
+    <!-- <button onclick = "fun()">ASDF</button> -->
       </div>
     </div>
   </body>
